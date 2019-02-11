@@ -36,7 +36,11 @@ public class ClaimVerificationEndpointConstants {
 
     public static final String ERROR_CODE_NO_MATCHING_USER_FOUND = "20014";
     public static final String ERROR_CODE_MULTIPLE_MATCHING_USERS_FOUND = "20015";
+    public static final String ERROR_CODE_NO_MATCHING_VALIDATION_STATUS_FOUND = "20016";
     public static final String ERROR_CODE_UNEXPECTED_ERROR = "18013";
+
+    public static final String ERROR_WHILE_RETRIEVING_USER_DATA = "Error while retrieving user data.";
+    public static final String ERROR_WHILE_RETRIEVING_CLAIM_DATA = "Error while retrieving claim data.";
 
     public static final String CLAIM_VALIDATION_SUCCESS = "SUCCESS";
     public static final String CLAIM_VALIDATION_FAILURE = "FAILURE";

@@ -25,18 +25,12 @@ import org.wso2.carbon.identity.claim.verification.core.model.User;
 import org.wso2.carbon.identity.claim.verification.core.model.ValidationResponse;
 import org.wso2.carbon.identity.claim.verification.core.verifier.ClaimVerifier;
 
-import java.util.List;
 import java.util.Map;
 
 public class ClaimVerificationHandlerImpl implements ClaimVerificationHandler {
 
-    private static final Log log = LogFactory.getLog(ClaimVerificationHandlerImpl.class);
-    private List<ClaimVerifier> claimVerifiers;
+    private static final Log LOG = LogFactory.getLog(ClaimVerificationHandlerImpl.class);
 
-    public ClaimVerificationHandlerImpl(ClaimVerificationServiceDataHolder claimVerificationServiceDataHolder) {
-
-        this.claimVerifiers = claimVerificationServiceDataHolder.getClaimVerifiers();
-    }
 
     @Override
     public String initVerification(User user, Claim claim, String verificationMethod, Map<String, String> properties) throws ClaimVerificationException {
@@ -56,6 +50,7 @@ public class ClaimVerificationHandlerImpl implements ClaimVerificationHandler {
         //send back code
 
 
+
         return null;
     }
 
@@ -71,16 +66,20 @@ public class ClaimVerificationHandlerImpl implements ClaimVerificationHandler {
 
         //send the confirmation code if validation success
         // throw error exception if verification fails
+
+
         return null;
     }
 
     @Override
-    public void confirmVerification (String code, String status) throws ClaimVerificationException {
+    public void confirmVerification (String code, boolean isValidationSuccess) throws ClaimVerificationException {
 
+        // verify code
+        // call finalizer
     }
 
     private ClaimVerifier getClaimVerifier(String verificationMethod){
-        return claimVerifiers.get(0);
+        return ClaimVerificationServiceDataHolder.getInstance().getClaimVerifiers().get(0);
     }
 
 }

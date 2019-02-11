@@ -19,9 +19,6 @@ public class UserDTO  {
   private String username = null;
   
   
-  private String tenantDomain = null;
-
-
   private String realm = null;
 
   
@@ -37,17 +34,6 @@ public class UserDTO  {
     this.username = username;
   }
 
-  /**
-   * Tenant domain of the user.
-   **/
-  @ApiModelProperty(value = "")
-  @JsonProperty("tenant-domain")
-  public String getTenantDomain() {
-    return tenantDomain;
-  }
-  public void setTenantDomain(String tenantDomain) {
-    this.tenantDomain = tenantDomain;
-  }
   
   /**
    * User store that the user resides in.
@@ -69,7 +55,6 @@ public class UserDTO  {
     sb.append("class UserDTO {\n");
     
     sb.append("  username: ").append(username).append("\n");
-    sb.append("  tenantDomain: ").append(tenantDomain).append("\n");
     sb.append("  realm: ").append(realm).append("\n");
     sb.append("}\n");
     return sb.toString();

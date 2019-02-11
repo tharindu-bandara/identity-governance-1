@@ -19,19 +19,19 @@ package org.wso2.carbon.identity.claim.verification.core.model;
 public class ValidationResponse {
 
     // internal claim verification success or not
-    private boolean isValid;
+    private boolean isValidationSuccess;
 
     // only sent when external verification is  needed
     private String code;
 
-    public boolean isValid() {
+    public boolean isValidationSuccess() {
 
-        return isValid;
+        return isValidationSuccess;
     }
 
-    public void setValid(boolean valid) {
+    public void setValidationSuccess(boolean isValidationSuccess) {
 
-        isValid = valid;
+        this.isValidationSuccess = isValidationSuccess;
     }
 
     public String getCode() {

@@ -20,6 +20,7 @@ public class Claim {
 
     private String claimUri;
     private String claimValue;
+    private String claimDisplayTag;
 
     public String getClaimUri() {
 
@@ -39,5 +40,15 @@ public class Claim {
     public void setClaimValue(String claimValue) {
 
         this.claimValue = claimValue;
+    }
+
+    public String getClaimDisplayTag() {
+
+        return claimDisplayTag;
+    }
+
+    public void setClaimDisplayTag(String claimDisplayTag) {
+
+        this.claimDisplayTag = claimDisplayTag;
     }
 }

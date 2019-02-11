@@ -28,10 +28,9 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.claim.verification.core.ClaimVerificationHandler;
 import org.wso2.carbon.identity.claim.verification.core.ClaimVerificationHandlerImpl;
 import org.wso2.carbon.identity.claim.verification.core.verifier.ClaimVerifier;
-import org.wso2.carbon.identity.claim.verification.core.verifier.impl.UrlBasedClaimVerifier;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.wso2.carbon.identity.claim.verification.core.verifier.impl.EmailClaimVerifier;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * OSGi declarative services component which handles registration and un-registration of configuration management
@@ -43,8 +42,8 @@ import java.util.List;
 )
 public class ClaimVerificationServiceComponent {
 
-    private static final Log log = LogFactory.getLog(ClaimVerificationServiceComponent.class);
-    private List<ClaimVerifier> claimVerifiers = new ArrayList<>();
+    private static final Log LOG = LogFactory.getLog(ClaimVerificationServiceComponent.class);
+
 
     /**
      * Register ClaimVerificationHandler as an OSGI service.
@@ -57,19 +56,15 @@ public class ClaimVerificationServiceComponent {
         try {
             BundleContext bundleContext = componentContext.getBundleContext();
 
-            bundleContext.registerService(ClaimVerifier.class.getName(), new UrlBasedClaimVerifier(),
+            bundleContext.registerService(ClaimVerifier.class.getName(), new EmailClaimVerifier(),
                     null);
 
-            ClaimVerificationServiceDataHolder claimVerificationServiceDataHolder =
-                    new ClaimVerificationServiceDataHolder();
-            claimVerificationServiceDataHolder.setClaimVerifiers(claimVerifiers);
-
             bundleContext.registerService(ClaimVerificationHandler.class.getName(),
-                    new ClaimVerificationHandlerImpl(claimVerificationServiceDataHolder) {
+                    new ClaimVerificationHandlerImpl() {
                     }, null);
 
         } catch (Throwable e) {
-            log.error("Error while activating ClaimVerificationServiceComponent.", e);
+            LOG.error("Error while activating ClaimVerificationServiceComponent.", e);
         }
     }
 
@@ -83,21 +78,60 @@ public class ClaimVerificationServiceComponent {
     protected void setClaimVerifier(ClaimVerifier claimVerifier) {
 
         if (claimVerifier != null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Claim verifier:" + claimVerifier.getClass().getSimpleName() + " is registered in claim " +
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Claim verifier:" + claimVerifier.getClass().getSimpleName() + " is registered in claim " +
                         "verification service.");
             }
 
-            this.claimVerifiers.add(claimVerifier);
+            ClaimVerificationServiceDataHolder.getInstance().getClaimVerifiers().add(claimVerifier);
         }
     }
 
     protected void unsetClaimVerifier(ClaimVerifier claimVerifier) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Claim verifier:" + claimVerifier.getClass().getSimpleName() + " is unregistered in claim " +
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Claim verifier:" + claimVerifier.getClass().getSimpleName() + " is unregistered in claim " +
                     "verification service.");
         }
-        this.claimVerifiers.remove(claimVerifier);
+        ClaimVerificationServiceDataHolder.getInstance().getClaimVerifiers().remove(claimVerifier);
     }
+
+     @Reference(
+             name = "IdentityEventService",
+             service = org.wso2.carbon.identity.event.services.IdentityEventService.class,
+             cardinality = ReferenceCardinality.MANDATORY,
+             policy = ReferencePolicy.DYNAMIC,
+             unbind = "unsetIdentityEventService"
+     )
+    protected void setIdentityEventService(IdentityEventService identityEventService) {
+        ClaimVerificationServiceDataHolder.getInstance().setIdentityEventService(identityEventService);
+    }
+
+    protected void unsetIdentityEventService(IdentityEventService identityEventService) {
+        ClaimVerificationServiceDataHolder.getInstance().setIdentityEventService(null);
+    }
+
+    @Reference(
+            name = "realm.service",
+            service = org.wso2.carbon.user.core.service.RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService"
+    )
+    protected void setRealmService(RealmService realmService) {
+
+        ClaimVerificationServiceDataHolder.getInstance().setRealmService(realmService);
+//        if (log.isDebugEnabled()) {
+//            log.debug("RealmService is set in the User Store Count bundle");
+//        }
+    }
+
+    protected void unsetRealmService(RealmService realmService) {
+
+        ClaimVerificationServiceDataHolder.getInstance().setRealmService(null);
+//        if (log.isDebugEnabled()) {
+//            log.debug("RealmService is unset in the Application Authentication Framework bundle");
+//        }
+    }
+
 }

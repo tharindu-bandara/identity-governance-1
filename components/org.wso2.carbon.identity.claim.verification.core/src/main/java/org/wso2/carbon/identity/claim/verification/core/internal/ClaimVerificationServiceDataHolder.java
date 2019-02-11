@@ -17,11 +17,21 @@
 package org.wso2.carbon.identity.claim.verification.core.internal;
 
 import org.wso2.carbon.identity.claim.verification.core.verifier.ClaimVerifier;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.user.core.service.RealmService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClaimVerificationServiceDataHolder {
-    private List<ClaimVerifier> claimVerifiers;
+    private static ClaimVerificationServiceDataHolder instance = new ClaimVerificationServiceDataHolder(); // volatile??
+    private List<ClaimVerifier> claimVerifiers = new ArrayList<>();
+    private IdentityEventService identityEventService;
+    private RealmService realmService;
+
+    public static ClaimVerificationServiceDataHolder getInstance() {
+        return instance;
+    }
 
     public List<ClaimVerifier> getClaimVerifiers() {
 
@@ -31,5 +41,21 @@ public class ClaimVerificationServiceDataHolder {
     public void setClaimVerifiers(List<ClaimVerifier> claimVerifiers) {
 
         this.claimVerifiers = claimVerifiers;
+    }
+
+    public IdentityEventService getIdentityEventService() {
+        return identityEventService;
+    }
+
+    public void setIdentityEventService(IdentityEventService identityEventService) {
+        this.identityEventService = identityEventService;
+    }
+
+    public void setRealmService(RealmService realmService) {
+        this.realmService = realmService;
+    }
+
+    public RealmService getRealmService() {
+        return realmService;
     }
 }

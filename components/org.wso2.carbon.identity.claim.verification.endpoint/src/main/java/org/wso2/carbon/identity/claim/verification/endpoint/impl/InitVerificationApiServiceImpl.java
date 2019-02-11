@@ -1,13 +1,12 @@
 package org.wso2.carbon.identity.claim.verification.endpoint.impl;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.claim.verification.core.exception.ClaimVerificationException;
+import org.wso2.carbon.identity.claim.verification.core.model.Claim;
+import org.wso2.carbon.identity.claim.verification.core.model.User;
 import org.wso2.carbon.identity.claim.verification.endpoint.InitVerificationApiService;
-import org.wso2.carbon.identity.claim.verification.endpoint.dto.UserDTO;
 import org.wso2.carbon.identity.claim.verification.endpoint.dto.VerificationInitiatingRequestDTO;
 import org.wso2.carbon.identity.claim.verification.endpoint.impl.util.ClaimVerificationEndpointConstants;
 import org.wso2.carbon.identity.claim.verification.endpoint.impl.util.ClaimVerificationEndpointUtils;
@@ -22,26 +21,24 @@ public class InitVerificationApiServiceImpl extends InitVerificationApiService {
 
     @Override
     public Response initVerificationPost(VerificationInitiatingRequestDTO verificationInitiatingRequest) {
-        // do some magic!
 
         String tenantDomainFromContext =
                 (String) IdentityUtil.threadLocalProperties.get().get(ClaimVerificationEndpointConstants
                 .TENANT_NAME_FROM_CONTEXT);
 
-        if (StringUtils.isNotBlank(tenantDomainFromContext)) {
-            verificationInitiatingRequest.getUser().setTenantDomain(tenantDomainFromContext);
-        } else {
-            verificationInitiatingRequest.getUser().setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        }
+        User user = ClaimVerificationEndpointUtils.getUser(verificationInitiatingRequest.getUser(),
+                tenantDomainFromContext);
 
-        UserDTO user = verificationInitiatingRequest.getUser();
         int tenantIdFromContext = IdentityTenantUtil.getTenantId(user.getTenantDomain());
 
         String[] userList = ClaimVerificationEndpointUtils.getUserList(tenantIdFromContext, user.getUsername());
 
+        // Validate incoming user date.
         if (ArrayUtils.isEmpty(userList)) {
             String msg = "Unable to find an user with username: " + user.getUsername() + " in the system.";
-            LOG.error(msg);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(msg);
+            }
             ClaimVerificationEndpointUtils.handleBadRequest(
                     ClaimVerificationEndpointConstants.ERROR_CODE_NO_MATCHING_USER_FOUND, msg);
         } else if (userList.length == 1) {
@@ -49,17 +46,32 @@ public class InitVerificationApiServiceImpl extends InitVerificationApiService {
         } else {
             String msg = "There are multiple users with username: " + user.getUsername() + " in the system, " +
                     "please send the correct user-store domain along with the username.";
-            LOG.error(msg);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(msg);
+            }
             ClaimVerificationEndpointUtils.handleBadRequest(
                     ClaimVerificationEndpointConstants.ERROR_CODE_MULTIPLE_MATCHING_USERS_FOUND, msg);
         }
 
+        Claim claim = ClaimVerificationEndpointUtils.getClaim(verificationInitiatingRequest.getClaim());
+        org.wso2.carbon.user.api.Claim claimMetaData =
+                ClaimVerificationEndpointUtils.getClaimMetaData(tenantIdFromContext, claim.getClaimUri());
+
+        // Validate incoming claim date.
+        if (claimMetaData == null){
+            String msg = "Unable to find a claim with claim uri: " + claim.getClaimUri() + " in the system.";
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(msg);
+            }
+            ClaimVerificationEndpointUtils.handleBadRequest(
+                    ClaimVerificationEndpointConstants.ERROR_CODE_NO_MATCHING_USER_FOUND, msg);
+        }
+        claim.setClaimDisplayTag(claimMetaData.getDisplayTag());
+
         String confirmationCode = "";
         try {
             confirmationCode = ClaimVerificationEndpointUtils.getClaimVerificationHandler().initVerification(
-                    ClaimVerificationEndpointUtils.getUser(user),
-                    ClaimVerificationEndpointUtils.getClaim(verificationInitiatingRequest.getClaim()),
-                    verificationInitiatingRequest.getVerificationMethod(),
+                    user, claim, verificationInitiatingRequest.getVerificationMethod(),
                     ClaimVerificationEndpointUtils.getPropertiesToMap(verificationInitiatingRequest.getProperties()));
         } catch (ClaimVerificationException e) {
             String msg = "Error while initiating claim verification.";

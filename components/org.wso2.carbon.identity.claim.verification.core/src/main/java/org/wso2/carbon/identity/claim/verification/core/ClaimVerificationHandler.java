@@ -28,7 +28,7 @@ public interface ClaimVerificationHandler {
     String initVerification(User user, Claim claim, String verificationMethod, Map<String, String> properties) throws ClaimVerificationException;
     ValidationResponse validateClaim (String code, Map<String, String> properties) throws ClaimVerificationException;
     ValidationResponse validateClaim (String code, Map<String, String> properties, boolean isAdditionalValidationRequired) throws ClaimVerificationException;
-    void confirmVerification (String code, String status) throws ClaimVerificationException;
+    void confirmVerification (String code, boolean isValidationSuccess) throws ClaimVerificationException;
 
 
 }

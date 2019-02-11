@@ -18,16 +18,17 @@ package org.wso2.carbon.identity.claim.verification.core.verifier;
 
 import org.wso2.carbon.identity.claim.verification.core.exception.ClaimVerificationException;
 import org.wso2.carbon.identity.claim.verification.core.model.Claim;
+import org.wso2.carbon.identity.claim.verification.core.model.User;
 
-import javax.ws.rs.core.MultivaluedMap;
+import java.util.Map;
 
 public interface ClaimVerifier {
 
-    void sendNotification(Claim claim) throws ClaimVerificationException;
+    void sendNotification(User user, Claim claim, Map<String, String> properties) throws ClaimVerificationException;
 
-    boolean isVerified(MultivaluedMap properties) throws ClaimVerificationException;
+    boolean isVerified(Map<String, String> properties) throws ClaimVerificationException;
 
     boolean canHandle(String requestedVerifier) throws ClaimVerificationException;
 
-    String getConfirmationCodeExpiryTime() throws ClaimVerificationException;
+    String getConfirmationCodeValidityPeriod() throws ClaimVerificationException;
 }
