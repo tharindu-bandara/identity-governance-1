@@ -29,6 +29,7 @@ public interface ClaimVerificationHandler {
     ValidationResponse validateClaim (String code, Map<String, String> properties) throws ClaimVerificationException;
     ValidationResponse validateClaim (String code, Map<String, String> properties, boolean isAdditionalValidationRequired) throws ClaimVerificationException;
     void confirmVerification (String code, boolean isValidationSuccess) throws ClaimVerificationException;
+    void revokeVerification (String code) throws ClaimVerificationException;
 
 
 }

@@ -37,7 +37,9 @@ public class ClaimVerificationHandlerImpl implements ClaimVerificationHandler {
         //check is verifiable claim?
 
         //check if its a retry
+        // isClaimDataExisting
         // if retry update confirmation code
+        // add retry property
 
         //use getverifier
 
@@ -74,8 +76,14 @@ public class ClaimVerificationHandlerImpl implements ClaimVerificationHandler {
     @Override
     public void confirmVerification (String code, boolean isValidationSuccess) throws ClaimVerificationException {
 
+        // check if the code can perform this step
         // verify code
         // call finalizer
+    }
+
+    @Override
+    public void revokeVerification(String code) throws ClaimVerificationException {
+
     }
 
     private ClaimVerifier getClaimVerifier(String verificationMethod){

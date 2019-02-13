@@ -24,7 +24,6 @@ import io.swagger.annotations.ApiModelProperty;
 public class ConfirmationRequestDTO {
 
     private String code = null;
-
     private String status = null;
 
     /**

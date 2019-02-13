@@ -62,7 +62,7 @@ public class ClaimVerificationException extends Exception {
      * @param message the detailed message
      * @param errorCode error code
      */
-    public ClaimVerificationException(String message, String errorCode) {
+    public ClaimVerificationException( String errorCode, String message) {
 
         super(message);
         this.errorCode = errorCode;
@@ -75,7 +75,7 @@ public class ClaimVerificationException extends Exception {
      * @param cause the cause
      * @param errorCode error code
      */
-    public ClaimVerificationException(String message, Throwable cause, String errorCode) {
+    public ClaimVerificationException(String errorCode, String message, Throwable cause) {
 
         super(message, cause);
         this.errorCode = errorCode;

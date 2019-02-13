@@ -14,17 +14,14 @@
  *  limitations under the License.
  */
 
-package org.wso2.carbon.identity.claim.verification.endpoint.factories;
+package org.wso2.carbon.identity.claim.verification.core.store;
 
-import org.wso2.carbon.identity.claim.verification.endpoint.InitVerificationApiService;
-import org.wso2.carbon.identity.claim.verification.endpoint.impl.InitVerificationApiServiceImpl;
+import org.wso2.carbon.identity.claim.verification.core.exception.ClaimVerificationException;
+import org.wso2.carbon.identity.claim.verification.core.model.ConfirmationCodeData;
 
-public class InitVerificationApiServiceFactory {
+public interface ClaimVerificationStore {
 
-    private final static InitVerificationApiService service = new InitVerificationApiServiceImpl();
+    void storeConfirmationCode (ConfirmationCodeData codeData) throws ClaimVerificationException;
+    void invalidateConfirmationCode (ConfirmationCodeData codeData) throws ClaimVerificationException;
 
-    public static InitVerificationApiService getInitVerificationApi() {
-
-        return service;
-    }
 }

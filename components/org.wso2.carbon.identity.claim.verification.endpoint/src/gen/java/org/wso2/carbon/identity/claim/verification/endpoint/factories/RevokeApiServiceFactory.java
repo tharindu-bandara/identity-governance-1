@@ -16,14 +16,14 @@
 
 package org.wso2.carbon.identity.claim.verification.endpoint.factories;
 
-import org.wso2.carbon.identity.claim.verification.endpoint.InitVerificationApiService;
-import org.wso2.carbon.identity.claim.verification.endpoint.impl.InitVerificationApiServiceImpl;
+import org.wso2.carbon.identity.claim.verification.endpoint.RevokeApiService;
+import org.wso2.carbon.identity.claim.verification.endpoint.impl.RevokeApiServiceImpl;
 
-public class InitVerificationApiServiceFactory {
+public class RevokeApiServiceFactory {
 
-    private final static InitVerificationApiService service = new InitVerificationApiServiceImpl();
+    private final static RevokeApiService service = new RevokeApiServiceImpl();
 
-    public static InitVerificationApiService getInitVerificationApi() {
+    public static RevokeApiService getRevokeApi() {
 
         return service;
     }

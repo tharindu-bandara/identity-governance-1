@@ -14,17 +14,8 @@
  *  limitations under the License.
  */
 
-package org.wso2.carbon.identity.claim.verification.endpoint.factories;
+package org.wso2.carbon.identity.claim.verification.core.verifier.util;
 
-import org.wso2.carbon.identity.claim.verification.endpoint.InitVerificationApiService;
-import org.wso2.carbon.identity.claim.verification.endpoint.impl.InitVerificationApiServiceImpl;
+public class ClaimVerifierUtils {
 
-public class InitVerificationApiServiceFactory {
-
-    private final static InitVerificationApiService service = new InitVerificationApiServiceImpl();
-
-    public static InitVerificationApiService getInitVerificationApi() {
-
-        return service;
-    }
 }

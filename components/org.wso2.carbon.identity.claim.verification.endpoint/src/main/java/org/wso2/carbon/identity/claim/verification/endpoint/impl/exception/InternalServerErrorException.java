@@ -1,6 +1,5 @@
 /*
- *
- *  Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -28,7 +27,8 @@ public class InternalServerErrorException extends WebApplicationException {
 
     private String message;
 
-    public InternalServerErrorException(ErrorDTO errorDTO){
+    public InternalServerErrorException(ErrorDTO errorDTO) {
+
         super(Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                 .entity(errorDTO)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
@@ -36,12 +36,14 @@ public class InternalServerErrorException extends WebApplicationException {
         message = errorDTO.getDescription();
     }
 
-    public InternalServerErrorException(){
+    public InternalServerErrorException() {
+
         super(Response.Status.INTERNAL_SERVER_ERROR);
     }
 
     @Override
     public String getMessage() {
+
         return message;
     }
 }

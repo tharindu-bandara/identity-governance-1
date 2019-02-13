@@ -25,7 +25,6 @@ public class ClaimVerificationEndpointConstants {
     public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
     public static final String SERVER_ERROR = "Error occurred in the server while performing the task.";
 
-
     public static final String STATUS_FORBIDDEN_MESSAGE_DEFAULT = "Forbidden";
     public static final String STATUS_NOT_FOUND_MESSAGE_DEFAULT = "Not Found";
     public static final String STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT = "Internal server error";
@@ -34,10 +33,10 @@ public class ClaimVerificationEndpointConstants {
     public static final String STATUS_CONFLICT_MESSAGE_RESOURCE_ALREADY_EXISTS = "Resource Already Exists";
     public static final String STATUS_CONFLICT_MESSAGE_DEFAULT = "Conflict";
 
+    public static final String ERROR_CODE_UNEXPECTED_ERROR = "18013";
     public static final String ERROR_CODE_NO_MATCHING_USER_FOUND = "20014";
     public static final String ERROR_CODE_MULTIPLE_MATCHING_USERS_FOUND = "20015";
     public static final String ERROR_CODE_NO_MATCHING_VALIDATION_STATUS_FOUND = "20016";
-    public static final String ERROR_CODE_UNEXPECTED_ERROR = "18013";
 
     public static final String ERROR_WHILE_RETRIEVING_USER_DATA = "Error while retrieving user data.";
     public static final String ERROR_WHILE_RETRIEVING_CLAIM_DATA = "Error while retrieving claim data.";

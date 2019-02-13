@@ -21,11 +21,16 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.verification.core.exception.ClaimVerificationException;
 import org.wso2.carbon.identity.claim.verification.core.internal.ClaimVerificationServiceDataHolder;
 import org.wso2.carbon.identity.claim.verification.core.model.Claim;
+import org.wso2.carbon.identity.claim.verification.core.model.ConfirmationCodeData;
 import org.wso2.carbon.identity.claim.verification.core.model.User;
+import org.wso2.carbon.identity.claim.verification.core.store.ClaimVerificationStore;
+import org.wso2.carbon.identity.claim.verification.core.util.ClaimVerificationCoreConstants;
 import org.wso2.carbon.identity.claim.verification.core.util.ClaimVerificationCoreUtils;
 import org.wso2.carbon.identity.claim.verification.core.verifier.ClaimVerifier;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -36,20 +41,64 @@ import java.util.Map;
 public class EmailClaimVerifier implements ClaimVerifier {
 
     private static final Log LOG = LogFactory.getLog(EmailClaimVerifier.class);
-    final String CLAIM_URI_USER_GIVEN_NAME="http://wso2.org/claims/givenname";
+    private final String CLAIM_URI_USER_GIVEN_NAME="http://wso2.org/claims/givenname";
+    private final String PROPERTY_SEND_TO="send-to";
+    private final String PROPERTY_CLAIM_NAME="claim-name";
+    private final String PROPERTY_CLAIM_VALUE="claim-value";
+    private final String PROPERTY_VALIDATION_URL="validation-url";
+    private final String PROPERTY_CONFIRMATION_CODE="confirmation-code";
+    private final String PROPERTY_TEMPLATE_TYPE="TEMPLATE_TYPE";
+    private final String PROPERTY_TEMPLATE_TYPE_VALUE= "emailVerification";
+
     private final String identifier = "EmailClaimVerifier";
+
+
 
     @Override
     public void sendNotification(User user, Claim claim, Map<String, String> properties) throws ClaimVerificationException {
 
+        ClaimVerificationStore claimVerificationStore = ClaimVerificationCoreUtils.getClaimVerificationStore();
+
+        if (properties.containsKey(ClaimVerificationCoreConstants.PROP_IS_RETRY_ATTEMPT)){
+
+            ConfirmationCodeData codeData = new ConfirmationCodeData(user, null, claim.getClaimUri(),
+                    ClaimVerificationCoreConstants.Scenarios.EMAIL_VERIFICATION );
+
+            claimVerificationStore.invalidateConfirmationCode(codeData);
+        }
+
         String confirmationCode = ClaimVerificationCoreUtils.getConfirmationCode();
 
-        Map <String, String> notificationProps = new HashMap<>();
-        notificationProps.put(CLAIM_URI_USER_GIVEN_NAME, getUserGivenName(user));
-        notificationProps.put()
-        //generate confirmation code
-        // get template properties
-        // send email
+        ConfirmationCodeData codeData = new ConfirmationCodeData(user, confirmationCode, claim.getClaimUri(),
+                ClaimVerificationCoreConstants.Scenarios.EMAIL_VERIFICATION );
+
+        claimVerificationStore.storeConfirmationCode(codeData);
+
+        // add confirmation code to db-- user common util
+
+        Map <String, Object> notificationProps = new HashMap<>();
+        notificationProps.put(IdentityEventConstants.EventProperty.USER_STORE_MANAGER,
+                getUserStoreManager(IdentityTenantUtil.getTenantId(user.getTenantDomain())));
+        notificationProps.put(IdentityEventConstants.EventProperty.USER_NAME, user.getUsername());
+        notificationProps.put(IdentityEventConstants.EventProperty.USER_STORE_DOMAIN, user.getRealm());
+        notificationProps.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, user.getTenantDomain());
+        notificationProps.put(PROPERTY_SEND_TO, claim.getClaimValue());
+        notificationProps.put(PROPERTY_CLAIM_NAME, claim.getClaimDisplayTag());
+        notificationProps.put(PROPERTY_CLAIM_VALUE, claim.getClaimValue());
+        notificationProps.put(PROPERTY_VALIDATION_URL, properties.get(PROPERTY_VALIDATION_URL));
+        notificationProps.put(PROPERTY_CONFIRMATION_CODE, confirmationCode);
+        notificationProps.put(PROPERTY_TEMPLATE_TYPE, PROPERTY_TEMPLATE_TYPE_VALUE);
+
+
+        Event identityMgtEvent = new Event(IdentityEventConstants.Event.TRIGGER_NOTIFICATION, notificationProps);
+        try {
+            ClaimVerificationServiceDataHolder.getInstance().getIdentityEventService().handleEvent(identityMgtEvent);
+        } catch (IdentityEventException e) {
+            String msg = "Error occurred while sending claim verification email to: " + user.getUsername();
+            LOG.error(msg, e);
+            throw new ClaimVerificationException(msg, e);
+        }
+
     }
 
     @Override
@@ -108,16 +157,11 @@ public class EmailClaimVerifier implements ClaimVerifier {
 
     }*/
 
-    private String getUserGivenName(User user) throws ClaimVerificationException {
-
-
+    private UserStoreManager getUserStoreManager(int tenantId) throws ClaimVerificationException {
 
         RealmService realmService = ClaimVerificationServiceDataHolder.getInstance().getRealmService();
         try {
-            UserStoreManager userStoreManager = (UserStoreManager) realmService.getTenantUserRealm(IdentityTenantUtil
-                    .getTenantId(user.getTenantDomain())).getUserStoreManager();
-            return userStoreManager.getUserClaimValue(IdentityUtil.addDomainToName
-                    (user.getUsername(), user.getRealm()), CLAIM_URI_USER_GIVEN_NAME, null);
+            return (UserStoreManager) realmService.getTenantUserRealm(tenantId).getUserStoreManager();
         } catch (UserStoreException e) {
             String msg = "Error while retrieving givenname claim value for user.";
             LOG.error(msg,e);

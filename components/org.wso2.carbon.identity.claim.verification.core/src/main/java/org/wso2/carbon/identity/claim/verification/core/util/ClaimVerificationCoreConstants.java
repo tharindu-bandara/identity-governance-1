@@ -20,11 +20,18 @@ public class ClaimVerificationCoreConstants {
 
     private ClaimVerificationCoreConstants(){}
 
+    public static final String SCENARIO_CLAIM_VALIDATION = "CLAIM_VALIDATION";
+    public static final String SCENARIO_CLAIM_CONFIRMATION = "CLAIM_CONFIRMATION";
+    public static final String SCENARIO_EMAIL_CLAIM_VERIFICATION = "EMAIL_CLAIM_VERIFICATION";
+    public static final String PROP_IS_RETRY_ATTEMPT = "IS_RETRY_ATTEMPT";
+
     public enum ErrorMessages {
 
         ERROR_CODE_UNEXPECTED("18013", "Unexpected error"),
         ERROR_CODE_INVALID_CONFIRMATION_CODE("18013", "Unexpected error"),
-        ERROR_CODE_EXPIRED_CONFIRMATION_CODE("18013", "Unexpected error");
+        ERROR_CODE_EXPIRED_CONFIRMATION_CODE("18013", "Unexpected error"),
+        ERROR_CODE_STORING_DATA("18013", "Error when storing data."),
+        ERROR_CODE_INVALIDATING_CODE("18013", "Error when invalidating confirmation code.");
 
         private final String code;
         private final String message;
@@ -49,11 +56,19 @@ public class ClaimVerificationCoreConstants {
 
     }
 
+    public enum Scenarios {
+
+        CLAIM_VALIDATION,
+        CLAIM_CONFIRMATION,
+        EMAIL_VERIFICATION
+
+    }
+
     public static class SQLQueries {
 
         public static final String STORE_RECOVERY_DATA = "INSERT INTO IDN_RECOVERY_DATA "
-                + "(USER_NAME, USER_DOMAIN, TENANT_ID, CODE, SCENARIO,STEP, TIME_CREATED, REMAINING_SETS)"
-                + "VALUES (?,?,?,?,?,?,?,?)";
+                + "(USER_NAME, USER_DOMAIN, TENANT_ID, CODE, SCENARIO,STEP, TIME_CREATED)"
+                + "VALUES (?,?,?,?,?,?,?)";
         public static final String LOAD_RECOVERY_DATA = "SELECT "
                 + "* FROM IDN_RECOVERY_DATA WHERE USER_NAME = ? AND USER_DOMAIN = ? AND TENANT_ID = ? AND CODE = ? AND " +
                 "SCENARIO = ? AND STEP = ?";
@@ -65,13 +80,13 @@ public class ClaimVerificationCoreConstants {
         public static final String LOAD_RECOVERY_DATA_FROM_CODE = "SELECT * FROM IDN_RECOVERY_DATA WHERE CODE = ?";
 
 
-        public static final String INVALIDATE_CODE = "DELETE FROM IDN_RECOVERY_DATA WHERE CODE = ?";
+        public static final String INVALIDATE_CODE_USING_CODE = "DELETE FROM IDN_RECOVERY_DATA WHERE CODE = ?";
 
-        public static final String INVALIDATE_USER_CODES = "DELETE FROM IDN_RECOVERY_DATA WHERE USER_NAME = ? AND " +
-                "USER_DOMAIN = ? AND TENANT_ID =?";
+        public static final String INVALIDATE_CODE = "DELETE FROM IDN_RECOVERY_DATA WHERE USER_NAME = ? AND " +
+                "USER_DOMAIN = ? AND TENANT_ID =? AND SCENARIO =? AND STEP =?";
 
-        public static final String INVALIDATE_USER_CODES_CASE_INSENSITIVE = "DELETE FROM IDN_RECOVERY_DATA WHERE " +
-                "LOWER(USER_NAME)=LOWER(?) AND USER_DOMAIN = ? AND TENANT_ID =?";
+        public static final String INVALIDATE_CODE_CASE_INSENSITIVE = "DELETE FROM IDN_RECOVERY_DATA WHERE " +
+                "LOWER(USER_NAME)=LOWER(?) AND USER_DOMAIN = ? AND TENANT_ID =? AND SCENARIO =? AND STEP =?";
 
         public static final String LOAD_RECOVERY_DATA_OF_USER = "SELECT "
                 + "* FROM IDN_RECOVERY_DATA WHERE USER_NAME = ? AND USER_DOMAIN = ? AND TENANT_ID = ?";

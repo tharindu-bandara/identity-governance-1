@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.identity.claim.verification.core.util;
 
+import org.wso2.carbon.identity.claim.verification.core.store.ClaimVerificationStore;
+import org.wso2.carbon.identity.claim.verification.core.store.JDBCClaimVerificationStore;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
 public class ClaimVerificationCoreUtils {
@@ -26,4 +28,7 @@ public class ClaimVerificationCoreUtils {
         return UUIDGenerator.generateUUID();
     }
 
+    public static ClaimVerificationStore getClaimVerificationStore(){
+        return JDBCClaimVerificationStore.getInstance();
+    }
 }

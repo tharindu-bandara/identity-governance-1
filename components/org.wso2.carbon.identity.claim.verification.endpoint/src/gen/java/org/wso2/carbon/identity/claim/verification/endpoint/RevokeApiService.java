@@ -14,17 +14,14 @@
  *  limitations under the License.
  */
 
-package org.wso2.carbon.identity.claim.verification.endpoint.factories;
+package org.wso2.carbon.identity.claim.verification.endpoint;
 
-import org.wso2.carbon.identity.claim.verification.endpoint.InitVerificationApiService;
-import org.wso2.carbon.identity.claim.verification.endpoint.impl.InitVerificationApiServiceImpl;
+import org.wso2.carbon.identity.claim.verification.endpoint.dto.RevocationRequestDTO;
 
-public class InitVerificationApiServiceFactory {
+import javax.ws.rs.core.Response;
 
-    private final static InitVerificationApiService service = new InitVerificationApiServiceImpl();
+public abstract class RevokeApiService {
 
-    public static InitVerificationApiService getInitVerificationApi() {
-
-        return service;
-    }
+    public abstract Response revokePost(RevocationRequestDTO revocationRequest);
 }
+

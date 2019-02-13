@@ -14,9 +14,8 @@
  *  limitations under the License.
  */
 
-package org.wso2.carbon.identity.claim.verification.core.dao;
+package org.wso2.carbon.identity.claim.verification.core.verifier.util;
 
-public class ClaimVerificationDAO {
-
+public class ClaimVerifierConstants {
 
 }

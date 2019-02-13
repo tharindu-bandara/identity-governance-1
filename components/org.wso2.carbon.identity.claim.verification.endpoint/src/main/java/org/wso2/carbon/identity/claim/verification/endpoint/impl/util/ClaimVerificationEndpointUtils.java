@@ -113,7 +113,7 @@ public class ClaimVerificationEndpointUtils {
             propertyList.add(getProperty("code", code));
 
             validationResponseDTO.setProperties(propertyList);
-            validationResponseDTO.setLink(getLink(ClaimVerificationEndpointConstants.API_URI_EP_INIT_VERIFICATION));
+            validationResponseDTO.setLink(getLink(ClaimVerificationEndpointConstants.API_URI_EP_CONFIRM));
         }
 
         return validationResponseDTO;
@@ -164,7 +164,7 @@ public class ClaimVerificationEndpointUtils {
             userList = userStoreManager.listUsers(username, 2);
             return userList;
         } catch (UserStoreException e) {
-            LOG.error("Error retrieving the user-list for the tenant: " + tenantId + " and user: " + username, e); //is it okay to log the incoming username
+            LOG.error("Error retrieving the user-list for the tenant: " + tenantId + " and user: " + username, e);
             handleInternalServerError(ClaimVerificationEndpointConstants.ERROR_CODE_UNEXPECTED_ERROR,
                     ClaimVerificationEndpointConstants.ERROR_WHILE_RETRIEVING_USER_DATA);
         }
@@ -181,7 +181,8 @@ public class ClaimVerificationEndpointUtils {
             claimMetaData = claimManager.getClaim(claimUri);
             return claimMetaData;
         } catch (UserStoreException e) {
-            LOG.error("Error retrieving the claim meta date for the tenant: " + tenantId + " and claim uri: " + claimUri, e);
+            LOG.error("Error retrieving the claim meta date for the tenant: " + tenantId + " and claim uri: "
+                    + claimUri, e);
             handleInternalServerError(ClaimVerificationEndpointConstants.ERROR_CODE_UNEXPECTED_ERROR,
                     ClaimVerificationEndpointConstants.ERROR_WHILE_RETRIEVING_CLAIM_DATA);
         }
@@ -207,7 +208,8 @@ public class ClaimVerificationEndpointUtils {
         } catch (UserStoreException e) {
             LOG.error("Error retrieving UserStoreManager for tenantId : " + tenantId, e);
 
-            // Not sending exact error message as error is sent to a third party, potentially disclosing unwanted information.
+            // Not sending exact error message as error is sent to a third party, potentially disclosing unwanted
+            // information.
             handleInternalServerError(ClaimVerificationEndpointConstants.ERROR_CODE_UNEXPECTED_ERROR,
                     ClaimVerificationEndpointConstants.ERROR_WHILE_RETRIEVING_USER_DATA);
         }
