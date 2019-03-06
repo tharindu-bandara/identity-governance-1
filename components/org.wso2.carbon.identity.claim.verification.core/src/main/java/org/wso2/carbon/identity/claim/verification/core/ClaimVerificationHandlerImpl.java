@@ -39,11 +39,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static org.wso2.carbon.identity.claim.verification.core.util.ClaimVerificationCoreConstants.ErrorMessages;
-import static org.wso2.carbon.identity.claim.verification.core.util.ClaimVerificationCoreConstants.PROP_IS_RETRY_ATTEMPT;
-import static org.wso2.carbon.identity.claim.verification.core.util.ClaimVerificationCoreConstants.Step;
-import static org.wso2.carbon.identity.claim.verification.core.util.ClaimVerificationCoreConstants.ClaimVerificationStatus;
-import static org.wso2.carbon.identity.claim.verification.core.util.ClaimVerificationCoreConstants.CodeType;
+import static org.wso2.carbon.identity.claim.verification.core.constant.ClaimVerificationCoreConstants.ClaimVerificationStatus;
+import static org.wso2.carbon.identity.claim.verification.core.constant.ClaimVerificationCoreConstants.CodeType;
+import static org.wso2.carbon.identity.claim.verification.core.constant.ClaimVerificationCoreConstants.ErrorMessages;
+import static org.wso2.carbon.identity.claim.verification.core.constant.ClaimVerificationCoreConstants.PROP_IS_RETRY_ATTEMPT;
+import static org.wso2.carbon.identity.claim.verification.core.constant.ClaimVerificationCoreConstants.Step;
 
 /**
  * The claim verification core. Handles all necessary actions for the claim verification process.
@@ -55,18 +55,22 @@ public class ClaimVerificationHandlerImpl implements ClaimVerificationHandler {
     private static final String SCENARIO_APPENDER = "-";
 
     @Override
-    public String initVerification(User user, Claim claim, String verificationMethod, Map<String, String> properties)
+    public String initVerification(User user, Claim claim, Map<String, String> properties)
             throws ClaimVerificationException {
 
-        ClaimVerifier claimVerifier = getClaimVerifier(verificationMethod);
+        // Validate incoming properties
+        validateProperties(properties);
+        // TODO: 3/6/19 [Review Required] claim verifier selection is based on the properties at /init and in the
+        //  rest of the life cycle, identified by an identifier.
+        ClaimVerifier claimVerifier = getClaimVerifierByProperties(properties);
         ClaimVerificationStore claimVerificationStore = ClaimVerificationCoreUtils.getClaimVerificationStore();
 
         // Validate incoming user data.
         validateUser(user);
 
         int claimId = claimVerificationStore.loadClaimId(claim.getClaimUri(), user.getTenantId());
-        org.wso2.carbon.user.api.Claim claimMetaData =
-                ClaimVerificationCoreUtils.getClaimMetaData(user.getTenantId(), claim.getClaimUri());
+//        org.wso2.carbon.user.api.Claim claimMetaData =
+//                ClaimVerificationCoreUtils.getClaimMetaData(user.getTenantId(), claim.getClaimUri());
 
         // Validate incoming claim data.
         validateClaimData(claim, claimId, user.getTenantId());
@@ -85,7 +89,7 @@ public class ClaimVerificationHandlerImpl implements ClaimVerificationHandler {
             }
 
             ConfirmationCodeData codeData = new ConfirmationCodeData(user,
-                    getScenarioForCodeData(claimId, verificationMethod), verificationStatus);
+                    getScenarioForCodeData(claimId, claimVerifier.getId()), verificationStatus);
             claimVerificationStore.invalidateConfirmationCode(codeData);
 
             if ((loadedClaimData.getVerificationStatus() !=
@@ -107,7 +111,7 @@ public class ClaimVerificationHandlerImpl implements ClaimVerificationHandler {
 
         String confirmationCode = ClaimVerificationCoreUtils.getConfirmationCode();
         ConfirmationCodeData codeData = new ConfirmationCodeData(user, confirmationCode,
-                getScenarioForCodeData(claimId, verificationMethod), Step.CLAIM_VALIDATION);
+                getScenarioForCodeData(claimId, claimVerifier.getId()), Step.CLAIM_VALIDATION);
         claimVerificationStore.storeConfirmationCode(codeData);
 
         return confirmationCode;
@@ -135,8 +139,8 @@ public class ClaimVerificationHandlerImpl implements ClaimVerificationHandler {
                     ErrorMessages.ERROR_MSG_INVALID_CONFIRMATION_CODE);
         }
 
-        String verificationMethod = getVerificationMethod(codeData);
-        ClaimVerifier claimVerifier = getClaimVerifier(verificationMethod);
+        String verifierId = getVerifierId(codeData);
+        ClaimVerifier claimVerifier = getClaimVerifierById(verifierId);
 
         validateConfirmationCode(codeData, claimVerifier.getConfirmationCodeValidityPeriod(
                 CodeType.VALIDATION, codeData.getUser().getTenantId()), Step.CLAIM_VALIDATION);
@@ -158,13 +162,13 @@ public class ClaimVerificationHandlerImpl implements ClaimVerificationHandler {
         } else if (isAdditionalValidationRequired) {
             ClaimData claimData = new ClaimData(codeData.getUser(), claimId, ClaimVerificationStatus.PENDING);
             claimVerificationStore.updateClaimVerificationStatus(claimData);
-            String confirmationCode = ClaimVerificationCoreUtils.getConfirmationCode();
-            ConfirmationCodeData newCodeData = new ConfirmationCodeData(codeData.getUser(), confirmationCode,
+            String newConfirmationCode = ClaimVerificationCoreUtils.getConfirmationCode();
+            ConfirmationCodeData newCodeData = new ConfirmationCodeData(codeData.getUser(), newConfirmationCode,
                     codeData.getScenario(), Step.CLAIM_CONFIRMATION);
             claimVerificationStore.storeConfirmationCode(newCodeData);
             validationResponse.setValidationSuccess(true);
             validationResponse.setVerificationStatus(String.valueOf(ClaimVerificationStatus.PENDING));
-            validationResponse.setCode(confirmationCode);
+            validationResponse.setCode(newConfirmationCode);
             return validationResponse;
         } else {
             // Add claim data to user store as claim verification is successful.
@@ -191,8 +195,8 @@ public class ClaimVerificationHandlerImpl implements ClaimVerificationHandler {
                     ErrorMessages.ERROR_MSG_INVALID_CONFIRMATION_CODE);
         }
 
-        String verificationMethod = getVerificationMethod(codeData);
-        ClaimVerifier claimVerifier = getClaimVerifier(verificationMethod);
+        String verifierId = getVerifierId(codeData);
+        ClaimVerifier claimVerifier = getClaimVerifierById(verifierId);
 
         validateConfirmationCode(codeData, claimVerifier.getConfirmationCodeValidityPeriod(CodeType.CONFIRMATION,
                 codeData.getUser().getTenantId()), Step.CLAIM_CONFIRMATION);
@@ -218,8 +222,8 @@ public class ClaimVerificationHandlerImpl implements ClaimVerificationHandler {
                     ErrorMessages.ERROR_MSG_INVALID_CONFIRMATION_CODE);
         }
 
-        String verificationMethod = getVerificationMethod(codeData);
-        ClaimVerifier claimVerifier = getClaimVerifier(verificationMethod);
+        String verifierId = getVerifierId(codeData);
+        ClaimVerifier claimVerifier = getClaimVerifierById(verifierId);
 
         validateConfirmationCode(codeData, claimVerifier.getConfirmationCodeValidityPeriod(
                 getCodeType(codeData.getStep()), codeData.getUser().getTenantId()), null);
@@ -227,6 +231,7 @@ public class ClaimVerificationHandlerImpl implements ClaimVerificationHandler {
         claimVerificationStore.invalidateConfirmationCode(codeData.getCode());
 
         Claim claim = getClaim(codeData, claimVerificationStore);
+
         // Call claim verifier.
         claimVerifier.revokeProcess(codeData.getUser(), claim);
 
@@ -254,18 +259,37 @@ public class ClaimVerificationHandlerImpl implements ClaimVerificationHandler {
     }
 
     /**
-     * Used to get the claim verifier.
+     * Used to get the claim verifier by properties.
      *
-     * @param verificationMethod Identifier for the claim verifier to be used for claim verification.
      * @return ClaimVerifier.
      * @throws ClaimVerificationException
      */
-    private ClaimVerifier getClaimVerifier(String verificationMethod) throws ClaimVerificationException {
+    private ClaimVerifier getClaimVerifierByProperties(Map<String, String> properties)
+            throws ClaimVerificationException {
 
         List<ClaimVerifier> claimVerifiers = ClaimVerificationServiceDataHolder.getInstance().getClaimVerifiers();
 
         for (ClaimVerifier claimVerifier : claimVerifiers) {
-            if (claimVerifier.canHandle(verificationMethod)) {
+            if (claimVerifier.canHandle(properties)) {
+                return claimVerifier;
+            }
+        }
+        throw ClaimVerificationCoreUtils.getClaimVerificationBadRequestException(
+                ErrorMessages.ERROR_MSG_NO_MATCHING_CLAIM_VERIFIER_FOUND);
+    }
+
+    /**
+     * Used to get the claim verifier by the id.
+     *
+     * @return ClaimVerifier.
+     * @throws ClaimVerificationException
+     */
+    private ClaimVerifier getClaimVerifierById(String id) throws ClaimVerificationException {
+
+        List<ClaimVerifier> claimVerifiers = ClaimVerificationServiceDataHolder.getInstance().getClaimVerifiers();
+
+        for (ClaimVerifier claimVerifier : claimVerifiers) {
+            if (claimVerifier.getId().equals(id)) {
                 return claimVerifier;
             }
         }
@@ -335,27 +359,27 @@ public class ClaimVerificationHandlerImpl implements ClaimVerificationHandler {
 
     /**
      * Used to get the scenario string related to the confirmation code.
-     * String format: CLAIM_VERIFICATION-claimId-verificationMethod
+     * String format: CLAIM_VERIFICATION-claimId-verifierId
      *
      * @param claimId            Claim id.
-     * @param verificationMethod Verification method.
+     * @param verifierId Verification method.
      * @return
      */
-    private String getScenarioForCodeData(int claimId, String verificationMethod) {
+    private String getScenarioForCodeData(int claimId, String verifierId) {
 
-        // scenario -> CLAIM_VERIFICATION-<claimId>-<verificationMethod>
-        return CLAIM_VERIFICATION + SCENARIO_APPENDER + claimId + SCENARIO_APPENDER + verificationMethod;
+        // scenario -> CLAIM_VERIFICATION-<claimId>-<verifierId>
+        return CLAIM_VERIFICATION + SCENARIO_APPENDER + claimId + SCENARIO_APPENDER + verifierId;
     }
 
     /**
-     * Used to get the verification method from the confirmation code.
+     * Used to get the id value of the verifier used for verification, from the confirmation code.
      *
      * @param codeData ConfirmationCodeData.
-     * @return Verification method.
+     * @return Identifier value of the verifier.
      */
-    private String getVerificationMethod(ConfirmationCodeData codeData) {
+    private String getVerifierId(ConfirmationCodeData codeData) {
 
-        // scenario -> CLAIM_VERIFICATION-<claimId>-<verificationMethod>
+        // scenario -> CLAIM_VERIFICATION-<claimId>-<verifierId>
         return codeData.getScenario().split(SCENARIO_APPENDER, 3)[2];
     }
 
@@ -367,7 +391,7 @@ public class ClaimVerificationHandlerImpl implements ClaimVerificationHandler {
      */
     private int getClaimId(ConfirmationCodeData codeData) {
 
-        // scenario -> CLAIM_VERIFICATION-<claimId>-<verificationMethod>
+        // scenario -> CLAIM_VERIFICATION-<claimId>-<verifierId>
         String claimId = codeData.getScenario().split(SCENARIO_APPENDER, 3)[1];
         return Integer.parseInt(claimId);
     }
@@ -465,5 +489,18 @@ public class ClaimVerificationHandlerImpl implements ClaimVerificationHandler {
         String msg = "Invalid step received to get codeType. step:" + String.valueOf(step);
         LOG.error(msg);
         throw ClaimVerificationCoreUtils.getClaimVerificationException(ErrorMessages.ERROR_MSG_UNEXPECTED_ERROR);
+    }
+
+    private void validateProperties(Map<String, String> properties) throws ClaimVerificationBadRequestException {
+
+        /*
+          Selection of the verification method in the init stage is based on the received properties, thus the
+          properties parameter is mandatory.
+         */
+        if (properties == null) {
+            LOG.debug("Invalid value received for the mandatory parameter, properties: " + properties);
+            throw ClaimVerificationCoreUtils.getClaimVerificationBadRequestException(
+                    ErrorMessages.ERROR_MSG_MISSING_MANDATORY_PROPERTIES);
+        }
     }
 }

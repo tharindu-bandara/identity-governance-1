@@ -13,8 +13,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-package org.wso2.carbon.identity.claim.verification.core.verifier.emailclaimverifier;
+// TODO: 3/6/19 [Review Required] Changed package name from "emailclaimverifier" to "email"
+package org.wso2.carbon.identity.claim.verification.core.verifier.email;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -38,9 +38,9 @@ import org.wso2.carbon.identity.governance.IdentityGovernanceService;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.claim.verification.core.util.ClaimVerificationCoreConstants.CodeType;
-import static org.wso2.carbon.identity.claim.verification.core.util.ClaimVerificationCoreConstants.ConnectorConfig;
-import static org.wso2.carbon.identity.claim.verification.core.util.ClaimVerificationCoreConstants.ErrorMessages;
+import static org.wso2.carbon.identity.claim.verification.core.constant.ClaimVerificationCoreConstants.CodeType;
+import static org.wso2.carbon.identity.claim.verification.core.constant.EmailClaimVerifierConstants.ConnectorConfig;
+import static org.wso2.carbon.identity.claim.verification.core.constant.ClaimVerificationCoreConstants.ErrorMessages;
 
 /**
  * Claim verifier for email claims.
@@ -49,15 +49,20 @@ public class EmailClaimVerifier implements ClaimVerifier {
 
     private static final Log LOG = LogFactory.getLog(EmailClaimVerifier.class);
 
-    private final String IDENTIFIER = "EmailClaimVerifier";
-
     private final String PROPERTY_SEND_TO = "send-to";
     private final String PROPERTY_NONCE_VALUE = "nonce-value";
     private final String PROPERTY_CLAIM_NAME = "claim-name";
     private final String PROPERTY_CLAIM_VALUE = "claim-value";
     private final String PROPERTY_VALIDATION_URL = "validation-url";
     private final String PROPERTY_TEMPLATE_TYPE = "TEMPLATE_TYPE";
-    private final String PROPERTY_TEMPLATE_TYPE_VALUE = "emailVerification";
+    private final String PROPERTY_TEMPLATE_TYPE_VALUE = "emailConfirm";
+    private final String PROPERTY_VERIFICATION_METHOD = "verification-method";
+
+    @Override
+    public String getId() {
+
+        return "EmailClaimVerifier";
+    }
 
     @Override
     public void sendNotification(User user, Claim claim, Map<String, String> properties) throws
@@ -102,9 +107,15 @@ public class EmailClaimVerifier implements ClaimVerifier {
     }
 
     @Override
-    public boolean canHandle(String verificationMethod) throws ClaimVerificationException {
+    public boolean canHandle(Map<String, String> properties) throws ClaimVerificationException {
 
-        return IDENTIFIER.equalsIgnoreCase(verificationMethod);
+        // This e-mail verifier will only engage if the property, "verification-method" is present and equals to the
+        // value "EmailClaimVerifier", which is this verifier's identifier value.
+        if (!properties.containsKey(PROPERTY_VERIFICATION_METHOD) ||
+                !getId().equalsIgnoreCase(properties.get(PROPERTY_VERIFICATION_METHOD))) {
+            return false;
+        }
+        return true;
     }
 
     @Override

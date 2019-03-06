@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.claim.verification.endpoint.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.claim.verification.core.exception.ClaimVerificationBadRequestException;
 import org.wso2.carbon.identity.claim.verification.core.exception.ClaimVerificationException;
 import org.wso2.carbon.identity.claim.verification.core.model.Claim;
@@ -26,7 +27,6 @@ import org.wso2.carbon.identity.claim.verification.endpoint.InitVerificationApiS
 import org.wso2.carbon.identity.claim.verification.endpoint.dto.VerificationInitiatingRequestDTO;
 import org.wso2.carbon.identity.claim.verification.endpoint.impl.util.ClaimVerificationEndpointConstants;
 import org.wso2.carbon.identity.claim.verification.endpoint.impl.util.ClaimVerificationEndpointUtils;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import javax.ws.rs.core.Response;
 
@@ -40,24 +40,21 @@ public class InitVerificationApiServiceImpl extends InitVerificationApiService {
     @Override
     public Response initVerificationPost(VerificationInitiatingRequestDTO verificationInitiatingRequest) {
 
-        String tenantDomainFromContext =
-                (String) IdentityUtil.threadLocalProperties.get().get(ClaimVerificationEndpointConstants
-                        .TENANT_NAME_FROM_CONTEXT);
-
         User user = ClaimVerificationEndpointUtils.getUser(verificationInitiatingRequest.getUser(),
-                tenantDomainFromContext);
+                getTenantDomainFromContext());
         Claim claim = ClaimVerificationEndpointUtils.getClaim(verificationInitiatingRequest.getClaim());
 
         String confirmationCode = "";
         try {
             confirmationCode = ClaimVerificationEndpointUtils.getClaimVerificationHandler().initVerification(
-                    user, claim, verificationInitiatingRequest.getVerificationMethod(),
-                    ClaimVerificationEndpointUtils.getPropertiesToMap(verificationInitiatingRequest.getProperties()));
+                    user, claim,
+                    ClaimVerificationEndpointUtils.getPropertiesToMap(verificationInitiatingRequest.getProperties())
+            );
         } catch (ClaimVerificationException e) {
 
             if (e instanceof ClaimVerificationBadRequestException) {
                 if (LOG.isDebugEnabled()) {
-                    String msg = "Malformed request received for claim verification initiation. ";
+                    String msg = "Malformed request received for claim verifimcation initiation. ";
                     LOG.debug(msg + e.getErrorCode() + ":" + e.getMessage(), e);
                 }
                 ClaimVerificationEndpointUtils.handleBadRequest(e.getErrorCode(), e.getMessage());
@@ -71,5 +68,10 @@ public class InitVerificationApiServiceImpl extends InitVerificationApiService {
 
         return Response.ok().entity(ClaimVerificationEndpointUtils.getInitVerificationResponse(confirmationCode))
                 .build();
+    }
+
+    private String getTenantDomainFromContext() {
+
+        return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
     }
 }

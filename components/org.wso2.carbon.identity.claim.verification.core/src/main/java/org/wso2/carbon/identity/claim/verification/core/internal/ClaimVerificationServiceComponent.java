@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.claim.verification.core.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
+
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -28,12 +29,15 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.claim.verification.core.ClaimVerificationHandler;
 import org.wso2.carbon.identity.claim.verification.core.ClaimVerificationHandlerImpl;
 import org.wso2.carbon.identity.claim.verification.core.verifier.ClaimVerifier;
-import org.wso2.carbon.identity.claim.verification.core.verifier.emailclaimverifier.EmailClaimVerifier;
-import org.wso2.carbon.identity.claim.verification.core.verifier.emailclaimverifier.EmailClaimVerifierConfigImpl;
+import org.wso2.carbon.identity.claim.verification.core.verifier.email.EmailClaimVerifier;
+import org.wso2.carbon.identity.claim.verification.core.verifier.email.config.EmailClaimVerifierConfigImpl;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
 import org.wso2.carbon.identity.governance.common.IdentityConnectorConfig;
 import org.wso2.carbon.user.core.service.RealmService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * OSGi declarative services component which handles registration and un-registration of
@@ -46,6 +50,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 public class ClaimVerificationServiceComponent {
 
     private static final Log LOG = LogFactory.getLog(ClaimVerificationServiceComponent.class);
+    private static final List<ClaimVerifier> claimVerifiers = new ArrayList<>();
 
     /**
      * Register ClaimVerificationHandler as an OSGI service.
@@ -56,6 +61,8 @@ public class ClaimVerificationServiceComponent {
     protected void activate(ComponentContext componentContext) {
 
         try {
+            initializeClaimVerificationServiceDataHolder();
+
             BundleContext bundleContext = componentContext.getBundleContext();
 
             bundleContext.registerService(ClaimVerifier.class.getName(), new EmailClaimVerifier(), null);
@@ -65,6 +72,7 @@ public class ClaimVerificationServiceComponent {
 
             bundleContext.registerService(ClaimVerificationHandler.class.getName(),
                     new ClaimVerificationHandlerImpl(), null);
+            LOG.info("ClaimVerificationServiceComponent is activated.");
         } catch (Throwable e) {
             LOG.error("Error while activating ClaimVerificationServiceComponent.", e);
         }
@@ -80,7 +88,7 @@ public class ClaimVerificationServiceComponent {
     protected void setClaimVerifier(ClaimVerifier claimVerifier) {
 
         if (claimVerifier != null) {
-            ClaimVerificationServiceDataHolder.getInstance().getClaimVerifiers().add(claimVerifier);
+            this.claimVerifiers.add(claimVerifier);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Claim verifier:" + claimVerifier.getClass().getSimpleName() + " is set in claim " +
                         "verification service.");
@@ -158,5 +166,10 @@ public class ClaimVerificationServiceComponent {
         if (LOG.isDebugEnabled()) {
             LOG.debug("IdentityGovernanceService is unset in claim verification service");
         }
+    }
+
+    private void initializeClaimVerificationServiceDataHolder() {
+
+        ClaimVerificationServiceDataHolder.getInstance().setClaimVerifiers(claimVerifiers);
     }
 }

@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package org.wso2.carbon.identity.claim.verification.core.verifier.emailclaimverifier;
+package org.wso2.carbon.identity.claim.verification.core.verifier.email.config;
 
 import org.wso2.carbon.identity.governance.IdentityGovernanceException;
 import org.wso2.carbon.identity.governance.common.IdentityConnectorConfig;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.wso2.carbon.identity.claim.verification.core.util.ClaimVerificationCoreConstants.ConnectorConfig;
+import static org.wso2.carbon.identity.claim.verification.core.constant.EmailClaimVerifierConstants.ConnectorConfig;
 
 /**
  * IdentityConnectorConfig for email claim verifier. Holds required properties.

@@ -33,12 +33,12 @@ public interface ClaimVerificationHandler {
      *
      * @param user               User of the claim.
      * @param claim              The claim.
-     * @param verificationMethod Identifier for the claim verifier to be used for claim verification.
      * @param properties         Additional properties that may be required by the claim verifier.
      * @return Confirmation code to be used for the claim validation step.
      * @throws ClaimVerificationException
      */
-    String initVerification(User user, Claim claim, String verificationMethod, Map<String, String> properties) throws ClaimVerificationException;
+    String initVerification(User user, Claim claim, Map<String, String> properties)
+            throws ClaimVerificationException;
 
     /**
      * Used to initiate claim validation. Used when additional validation is not required.

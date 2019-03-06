@@ -31,7 +31,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 
 import java.security.SecureRandom;
 
-import static org.wso2.carbon.identity.claim.verification.core.util.ClaimVerificationCoreConstants.ErrorMessages;
+import static org.wso2.carbon.identity.claim.verification.core.constant.ClaimVerificationCoreConstants.ErrorMessages;
 
 /**
  * Contains utils used for claim verification.
